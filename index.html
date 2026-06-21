@@ -1,0 +1,1242 @@
+<!DOCTYPE html>
+<html lang="ko">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>나의 독서 정원 - 아기자기한 독서 체크리스트</title>
+  <!-- Tailwind CSS -->
+  <script src="https://cdn.tailwindcss.com"></script>
+  <!-- Google Fonts: Gowun Dodum (귀여운 고운돋움체) -->
+  <link rel="preconnect" href="https://fonts.googleapis.com">
+  <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+  <link href="https://fonts.googleapis.com/css2?family=Gowun+Dodum&family=Gamja+Flower&display=swap" rel="stylesheet">
+  <!-- FontAwesome for cute icons -->
+  <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css">
+  
+  <style>
+    body {
+      font-family: 'Gowun Dodum', sans-serif;
+      background-color: #f7f3eb; /* 따뜻한 미색 배경 */
+    }
+    .fancy-font {
+      font-family: 'Gamja Flower', cursive;
+    }
+    /* 귀여운 애니메이션 효과 */
+    @keyframes wind {
+      0%, 100% { transform: rotate(0deg); }
+      50% { transform: rotate(2deg); }
+    }
+    .swaying-tree {
+      transform-origin: bottom center;
+      animation: wind 6s ease-in-out infinite;
+    }
+    /* 책 열매 둥둥 뜨는 효과 */
+    @keyframes float {
+      0%, 100% { transform: translateY(0px) rotate(0deg); }
+      50% { transform: translateY(-4px) rotate(3deg); }
+    }
+    .fruit-float {
+      animation: float 4s ease-in-out infinite;
+    }
+    /* 안내 말풍선 부드럽게 위아래로 움직이는 효과 */
+    @keyframes guide-bounce {
+      0%, 100% { transform: translateY(0); }
+      50% { transform: translateY(-6px); }
+    }
+    .guide-anim {
+      animation: guide-bounce 3s ease-in-out infinite;
+    }
+    /* 스크롤바 커스텀 */
+    ::-webkit-scrollbar {
+      width: 6px;
+    }
+    ::-webkit-scrollbar-track {
+      background: #f1f0ea;
+    }
+    ::-webkit-scrollbar-thumb {
+      background: #c2beb3;
+      border-radius: 10px;
+    }
+  </style>
+</head>
+<body class="overflow-x-hidden min-h-screen flex flex-col text-slate-800 selection:bg-amber-200">
+
+  <!-- 상단 네비게이션 & 사운드 바 -->
+  <header class="bg-white/80 backdrop-blur-md border-b border-orange-100 py-3 px-6 sticky top-0 z-40 shadow-sm flex flex-wrap justify-between items-center gap-4">
+    <div class="flex items-center gap-3">
+      <div class="text-3xl">🏡</div>
+      <div>
+        <h1 class="text-xl font-bold text-amber-950 flex items-center gap-2">
+          나의 독서 정원
+        </h1>
+        <p class="text-xs text-amber-800/70">책을 읽어 나만의 평화로운 숲을 풍성하게 가꿔보세요</p>
+      </div>
+    </div>
+
+    <!-- 로파이 주크박스 컨트롤러 -->
+    <div class="flex items-center gap-3 bg-amber-50/80 px-4 py-2 rounded-2xl border border-amber-200/60 shadow-inner">
+      <div class="text-xl animate-bounce">📻</div>
+      <div class="text-left">
+        <div class="text-xs font-bold text-amber-900">숲속 오디오</div>
+        <select id="bgm-select" class="text-xs bg-transparent border-none text-amber-800 focus:ring-0 cursor-pointer pr-4 font-sans" onchange="changeBgmTrack()">
+          <option value="off">🔇 음악 켜기 (소리 없음)</option>
+          <option value="track1">🎶 Track 1: 따뜻한 모닥불과 책장</option>
+          <option value="track2">🎵 Track 2: 소슬바람과 숲속 도서관</option>
+          <option value="track3">🌧️ Track 3: 아늑한 다락방 빗소리</option>
+        </select>
+      </div>
+      <button id="play-btn" onclick="toggleBgm()" class="w-8 h-8 rounded-full bg-emerald-500 hover:bg-emerald-600 text-white flex items-center justify-center transition active:scale-90 shadow-md">
+        <i id="play-icon" class="fa-solid fa-play"></i>
+      </button>
+    </div>
+  </header>
+
+  <!-- 메인 레이아웃: 싱그럽게 중앙 집중형 배치 -->
+  <main class="flex-1 max-w-4xl w-full mx-auto p-4 md:p-6 flex flex-col gap-6 justify-center">
+    
+    <section class="w-full flex flex-col gap-4">
+      
+      <!-- 정원 메인 뷰포트 -->
+      <div class="relative w-full h-[600px] bg-gradient-to-b from-[#bae6fd] via-[#e0f2fe] to-[#f0fdf4] rounded-[2.5rem] border-4 border-white/90 shadow-lg overflow-hidden" id="garden-bg">
+        
+        <!-- 하늘 구름 데코 -->
+        <div class="absolute top-12 left-10 opacity-40 animate-pulse text-4xl">☁️</div>
+        <div class="absolute top-20 right-24 opacity-30 animate-pulse text-5xl" style="animation-duration: 8s">☁️</div>
+
+        <!-- 현재 정원 이름표 -->
+        <div class="absolute top-6 left-1/2 -translate-x-1/2 bg-white/90 backdrop-blur-md border border-amber-200 px-6 py-2.5 rounded-full shadow-md text-center z-20">
+          <span class="text-xs uppercase tracking-wider font-bold text-amber-800/70 block mb-0.5">Forest Sanctuary</span>
+          <h2 class="text-lg font-black text-amber-950 flex items-center gap-2 justify-center">
+            🌲 <span id="current-garden-title">나의 정원</span>
+          </h2>
+          <p class="text-[10px] text-emerald-700 font-bold" id="tree-name-label">미지의 아기나무</p>
+        </div>
+
+        <!-- 정원 상태 표시 딱지 -->
+        <div class="absolute top-6 right-6 bg-white/90 border border-orange-100 px-3 py-1 rounded-full text-xs font-bold shadow-sm z-20 text-slate-700" id="season-badge">
+          🌿 싱그러운 초록 정원
+        </div>
+
+        <!-- 정원 주 무대 (나무 & 열매 배치 공간) -->
+        <div class="absolute inset-0 flex items-end justify-center pb-3">
+          
+          <!-- 나무 모듈 (흔들림) -->
+          <div class="relative w-[360px] h-[460px] swaying-tree flex flex-col items-center select-none">
+            
+            <!-- [개선!] 잎사귀에 가려지지 않도록 SVG 밖 HTML 레이어 최상단에 배치된 "나뭇잎 클릭" 안내 가이드 -->
+            <div class="absolute top-0 z-30 bg-white/95 text-emerald-800 border-2 border-emerald-400 px-4 py-1.5 rounded-full text-xs font-bold shadow-md cursor-pointer guide-anim flex items-center gap-1.5 hover:bg-emerald-50 active:scale-95 transition" onclick="openGardenManagementModal()">
+              <span>🍃</span> <span>나뭇잎 클릭 : 정원 관리</span>
+            </div>
+
+            <!-- 책 열매가 열릴 잎사귀 컨테이너 영역 -->
+            <div id="foliage-area" class="absolute top-14 w-[300px] h-[240px] z-10 pointer-events-none">
+              <!-- JS를 통해 책 열매 아이콘들이 여기에 절대 좌표로 생성됩니다 -->
+            </div>
+
+            <!-- 나무 메인 일러스트 (정교한 SVG 구조) -->
+            <svg viewBox="0 0 300 370" class="w-[300px] h-[370px]" xmlns="http://www.w3.org/2000/svg">
+              
+              <!-- [개선!] 싱그러운 초록색 한 색(#2f874e)으로 완전히 통일된 잎새들 (터치 시 정원 관리 모달 등장) -->
+              <g id="tree-foliage" class="transition-all duration-1000 cursor-pointer group" onclick="openGardenManagementModal()">
+                <!-- 뒤쪽 어두운 잎새들 -->
+                <circle cx="100" cy="115" r="55" fill="#2f874e" class="group-hover:fill-[#205c35] transition-colors" opacity="0.9" />
+                <circle cx="200" cy="115" r="55" fill="#2f874e" class="group-hover:fill-[#205c35] transition-colors" opacity="0.9" />
+                <circle cx="150" cy="85" r="65" fill="#2f874e" class="group-hover:fill-[#205c35] transition-colors" opacity="0.95" />
+                <circle cx="150" cy="145" r="65" fill="#2f874e" class="group-hover:fill-[#205c35] transition-colors" opacity="0.95" />
+                <!-- 전경 메인 잎새들 -->
+                <circle cx="110" cy="135" r="50" fill="#2f874e" class="group-hover:fill-[#205c35] transition-colors" />
+                <circle cx="190" cy="135" r="50" fill="#2f874e" class="group-hover:fill-[#205c35] transition-colors" />
+                <circle cx="150" cy="115" r="60" fill="#2f874e" class="group-hover:fill-[#205c35] transition-colors" />
+                <circle cx="150" cy="155" r="50" fill="#2f874e" class="group-hover:fill-[#205c35] transition-colors" />
+              </g>
+
+              <!-- 나무 꽃/눈송이/단풍 무늬 등의 계절 디테일용 레이어 -->
+              <g id="tree-decorations" class="pointer-events-none"></g>
+
+              <!-- 나무 몸통 (클릭해서 달력 여는 녀석) -->
+              <!-- 이 기둥 부분을 눌러야 달력이 활성화됨 -->
+              <g id="tree-trunk-clickable" class="cursor-pointer group" onclick="openCalendarModal()">
+                <!-- 둥근 기둥 기단부 -->
+                <path d="M 130,235 L 120,335 L 180,335 L 170,235 Z" fill="#78350f" class="group-hover:fill-[#92400e] transition-colors duration-300" />
+                <path d="M 110,325 L 100,345 L 200,345 L 190,325 Z" fill="#451a03" />
+                <!-- 몸통 기둥 내부 질감 나이테 곡선 -->
+                <path d="M 145,245 Q 138,285 142,325" stroke="#451a03" stroke-width="3" fill="none" opacity="0.6" />
+                <path d="M 155,250 Q 162,290 158,330" stroke="#451a03" stroke-width="3" fill="none" opacity="0.6" />
+                
+                <!-- 기둥 옹이구멍 (귀여운 디테일) -->
+                <ellipse cx="150" cy="285" rx="10" ry="15" fill="#2d0f00" />
+                <!-- 옹이 안의 작은 꼬마 다람쥐의 반짝이는 눈초리 -->
+                <circle cx="147" cy="285" r="2" fill="#fff" class="animate-pulse" />
+                <circle cx="153" cy="285" r="2" fill="#fff" class="animate-pulse" />
+
+                <!-- "클릭해서 달력 보기" 말풍선 유도 가이드 -->
+                <rect x="75" y="200" width="150" height="24" rx="12" fill="#fff" stroke="#d97706" stroke-width="1.5" class="shadow opacity-85 group-hover:opacity-100 transition-opacity" />
+                <text x="150" y="216" font-size="10" font-weight="bold" fill="#78350f" text-anchor="middle">📖 기둥 클릭 시 달력 오픈</text>
+              </g>
+            </svg>
+
+            <!-- 화분에 달린 정원 이름표 -->
+            <div class="absolute bottom-4 bg-amber-900 text-amber-100 px-4 py-1.5 rounded-full border-2 border-amber-600 shadow text-xs font-bold">
+              🪵 <span id="trunk-badge-text">행복한 아기나무</span>
+            </div>
+
+          </div>
+
+        </div>
+
+        <!-- 잔디밭 및 땅 데코 -->
+        <div class="absolute bottom-0 left-0 right-0 h-16 bg-[#2d7a4c] z-10 border-t-4 border-[#1e5c36]">
+          <div class="absolute top-[-10px] left-0 right-0 h-4 bg-gradient-to-r from-emerald-500 via-green-400 to-emerald-600 rounded-full opacity-80"></div>
+          <!-- 잔디밭 위 야생화들 -->
+          <div class="absolute bottom-4 left-1/4 text-sm animate-bounce" style="animation-duration: 3s">🌷</div>
+          <div class="absolute bottom-6 left-2/3 text-xs">🌼</div>
+          <div class="absolute bottom-3 right-1/4 text-sm animate-bounce" style="animation-duration: 4s">🌸</div>
+          <div class="absolute bottom-5 left-10 text-xs">🍄</div>
+          <div class="absolute bottom-2 right-12 text-sm">🪵</div>
+        </div>
+
+        <!-- 가든 하단 정보 바 -->
+        <div class="absolute bottom-3 left-4 right-4 flex justify-between text-xs font-bold text-white/95 bg-emerald-950/70 backdrop-blur-md px-4 py-2.5 rounded-2xl z-30 shadow-md">
+          <div id="garden-stats" class="flex gap-4">
+            <span>열린 책 열매: <strong class="text-amber-300" id="stat-fruits-count">0</strong>개</span>
+            <span>계획된 전체 책: <strong class="text-sky-300" id="stat-total-count">0</strong>권</span>
+          </div>
+          <div>
+            <span>초록 정원에서 독서 중 ✨</span>
+          </div>
+        </div>
+
+      </div>
+    </section>
+
+  </main>
+
+  <!-- 귀여운 저작권 footer -->
+  <footer class="bg-amber-950 text-amber-200/60 py-6 text-center text-xs mt-10 border-t border-amber-900">
+    <p class="mb-2">🏕️ 숲속 정원 관리 사무소</p>
+    <p>Copyright © 2026 My Reading Garden. All Rights Reserved. 잔잔한 로파이 음악과 함께하는 행복한 독서 생활 되세요.</p>
+  </footer>
+
+  <!-- ======================== 모달창 모음 ======================== -->
+
+  <!-- 1. 정원 관리 모달 (나뭇잎 클릭 시 우측에서 예쁘게 등장) -->
+  <div id="garden-mgmt-modal" class="fixed inset-0 z-50 bg-black/60 backdrop-blur-sm flex items-center justify-center p-4 opacity-0 pointer-events-none transition-all duration-300">
+    <div class="bg-white border-4 border-emerald-950/20 rounded-[2rem] shadow-2xl max-w-md w-full overflow-hidden flex flex-col max-h-[90vh] transition-transform duration-300 scale-95" id="garden-mgmt-modal-content">
+      
+      <!-- 모달 헤더 -->
+      <div class="bg-emerald-800 text-white p-5 flex justify-between items-center">
+        <h3 class="text-lg font-black flex items-center gap-2">
+          🍃 나뭇잎 정원 관리 도구
+        </h3>
+        <button onclick="closeGardenManagementModal()" class="w-8 h-8 rounded-full bg-emerald-900/50 hover:bg-emerald-900 text-white flex items-center justify-center transition">
+          <i class="fa-solid fa-xmark"></i>
+        </button>
+      </div>
+
+      <!-- 모달 바디 (스크롤 가능) -->
+      <div class="p-6 overflow-y-auto space-y-6 flex-1 bg-amber-50/10">
+        
+        <!-- 내 정원 리스트 -->
+        <div>
+          <h4 class="text-sm font-bold text-amber-950 mb-3 flex items-center gap-1.5">
+            <i class="fa-solid fa-seedling text-emerald-600"></i> 내 정원 고르기
+          </h4>
+          <div id="garden-list" class="space-y-2 max-h-[180px] overflow-y-auto pr-1">
+            <!-- 정원 리스트 동적 렌더링 -->
+          </div>
+          
+          <!-- 새 정원 개간 버튼 -->
+          <button onclick="openNewGardenModal()" class="w-full mt-3 py-2.5 px-3 bg-emerald-50 hover:bg-emerald-100 border border-emerald-200 text-emerald-800 rounded-xl text-xs font-bold flex items-center justify-center gap-2 transition active:scale-95 shadow-sm">
+            <i class="fa-solid fa-plus"></i> 새로운 독서 정원 개간하기
+          </button>
+        </div>
+
+        <hr class="border-amber-100">
+
+        <!-- 나무 정보 수정 -->
+        <div>
+          <h4 class="text-sm font-bold text-amber-950 mb-2 flex items-center gap-1.5">
+            <i class="fa-solid fa-pencil text-amber-700"></i> 나무 이름표 새로 달기
+          </h4>
+          <div class="bg-amber-50/50 p-4 rounded-2xl border border-amber-200/40 text-xs space-y-3">
+            <p class="text-amber-800/70">현재 보고 있는 정원의 나무 이름표를 바꿀 수 있습니다.</p>
+            <div class="flex gap-1.5">
+              <input type="text" id="tree-name-input" class="w-full bg-white border border-amber-200 rounded-xl px-3 py-2 text-xs focus:ring-1 focus:ring-emerald-400 focus:outline-none" placeholder="나무 이름">
+              <button onclick="updateTreeName()" class="bg-amber-800 hover:bg-amber-900 text-white px-4 py-2 rounded-xl font-bold transition active:scale-95 whitespace-nowrap shadow-sm">저장</button>
+            </div>
+          </div>
+        </div>
+
+        <hr class="border-amber-100">
+
+        <!-- 이용 가이드 -->
+        <div class="bg-emerald-50/60 p-4 rounded-2xl border border-emerald-100 text-[11px] text-emerald-900/90 leading-relaxed space-y-1.5">
+          <p class="font-bold text-xs text-emerald-950 mb-1 flex items-center gap-1">
+            <i class="fa-solid fa-circle-info"></i> 정원 가꾸기 요령
+          </p>
+          <p>• 나뭇잎이나 나뭇잎 버튼을 누르면 정원들을 전환하고 새 정원을 지을 수 있습니다.</p>
+          <p>• <strong class="text-amber-800">나무 기둥</strong>을 누르면 달력에 읽을 책 계획을 기록할 수 있습니다.</p>
+          <p>• 완료 체크가 된 책의 수만큼 나무에 알록달록 책 열매가 열립니다.</p>
+          <p>• 모든 데이터는 새로고침해도 브라우저에 소중히 간직됩니다.</p>
+        </div>
+
+      </div>
+
+      <!-- 모달 푸터 -->
+      <div class="p-4 bg-amber-50/30 border-t border-amber-100 text-center">
+        <button onclick="closeGardenManagementModal()" class="px-6 py-2 bg-emerald-700 hover:bg-emerald-800 text-white rounded-xl text-xs font-bold transition shadow-md w-full">
+          정원으로 돌아가기 🌳
+        </button>
+      </div>
+
+    </div>
+  </div>
+
+  <!-- 2. 달력 및 체크리스트 모달 (트렁크 클릭 시 노출) -->
+  <div id="calendar-modal" class="fixed inset-0 z-50 bg-black/60 backdrop-blur-sm flex items-center justify-center p-4 opacity-0 pointer-events-none transition-all duration-300">
+    <div class="bg-[#faf8f4] border-4 border-amber-900/10 rounded-[2rem] shadow-2xl max-w-4xl w-full overflow-hidden flex flex-col md:flex-row max-h-[90vh] transition-transform duration-300 scale-95" id="calendar-modal-content">
+      
+      <!-- 달력 섹션 (왼쪽) -->
+      <div class="flex-1 p-6 flex flex-col justify-between border-b md:border-b-0 md:border-r border-amber-200/50">
+        <div>
+          <!-- 달력 헤더 -->
+          <div class="flex justify-between items-center mb-4">
+            <button onclick="changeMonth(-1)" class="w-8 h-8 rounded-full hover:bg-amber-100 flex items-center justify-center text-amber-900 font-bold transition">
+              <i class="fa-solid fa-chevron-left"></i>
+            </button>
+            <h3 id="calendar-title" class="text-lg font-black text-amber-950">2026년 6월</h3>
+            <button onclick="changeMonth(1)" class="w-8 h-8 rounded-full hover:bg-amber-100 flex items-center justify-center text-amber-900 font-bold transition">
+              <i class="fa-solid fa-chevron-right"></i>
+            </button>
+          </div>
+
+          <!-- 남은 책 알림 요약 -->
+          <div class="bg-amber-100/70 border border-amber-200 rounded-2xl p-3 mb-4 flex items-center justify-between text-xs">
+            <div class="flex items-center gap-2 text-amber-900 font-semibold">
+              <i class="fa-solid fa-hourglass-half text-amber-600 animate-spin" style="animation-duration: 6s"></i>
+              <span>정원 도서 현황판:</span>
+            </div>
+            <div class="text-amber-950 font-black flex gap-3 text-[11px]">
+              <span class="text-slate-600">계획: <strong id="calc-planned">0</strong></span>
+              <span class="text-emerald-700">읽음: <strong id="calc-read">0</strong></span>
+              <span class="text-red-600 bg-red-50 px-2 py-0.5 rounded-full border border-red-100">남음: <strong id="calc-remaining">0</strong>권</span>
+            </div>
+          </div>
+
+          <!-- 달력 그리드 요일 명칭 -->
+          <div class="grid grid-cols-7 text-center text-xs font-bold text-amber-900/60 mb-2">
+            <div class="text-red-500">일</div>
+            <div>월</div>
+            <div>화</div>
+            <div>수</div>
+            <div>목</div>
+            <div>금</div>
+            <div class="text-sky-500">토</div>
+          </div>
+
+          <!-- 실제 일자들 그리드 -->
+          <div id="calendar-grid" class="grid grid-cols-7 gap-1 text-center font-sans text-xs">
+            <!-- JS를 통해 동적 일자 생성 -->
+          </div>
+        </div>
+
+        <div class="text-[11px] text-amber-800/60 mt-4 italic">
+          * 달력의 날짜 칸을 클릭하면 그 날짜에 읽을 책을 추가할 수 있어요.
+        </div>
+      </div>
+
+      <!-- 체크리스트 & 독서 추가 섹션 (오른쪽) -->
+      <div class="w-full md:w-80 bg-amber-50/40 p-6 flex flex-col justify-between">
+        <div class="flex-1 flex flex-col">
+          <div class="flex justify-between items-center mb-3">
+            <h4 class="font-bold text-amber-950 text-sm flex items-center gap-1.5">
+              <i class="fa-solid fa-list-check text-emerald-600"></i> 독서 체크리스트
+            </h4>
+            <span class="text-[10px] bg-emerald-100 text-emerald-800 px-2 py-0.5 rounded-full font-bold" id="selected-date-label">날짜 선택됨</span>
+          </div>
+
+          <!-- 리스트 박스 -->
+          <div id="todo-list" class="flex-1 overflow-y-auto space-y-2 mb-4 max-h-[220px] md:max-h-none pr-1">
+            <!-- 선택한 날짜 또는 전체 책 체크리스트 렌더링 -->
+          </div>
+
+          <!-- 새로운 책 추가 폼 -->
+          <div class="bg-white p-3.5 rounded-2xl border border-amber-200/60 shadow-sm space-y-2.5">
+            <h5 class="text-xs font-bold text-amber-900 flex items-center gap-1"><i class="fa-solid fa-plus-circle text-amber-600"></i> 읽을 계획 추가</h5>
+            <div>
+              <input type="text" id="new-book-title" class="w-full bg-amber-50/50 border border-amber-200 rounded-lg px-2 py-1 text-xs focus:ring-1 focus:ring-emerald-400 focus:outline-none" placeholder="책 제목을 적어주세요.">
+            </div>
+            <div class="flex gap-1">
+              <input type="date" id="new-book-date" class="w-full bg-amber-50/50 border border-amber-200 rounded-lg px-2 py-1 text-xs focus:ring-1 focus:ring-emerald-400 focus:outline-none font-sans">
+              <button onclick="addNewBook()" class="bg-emerald-500 hover:bg-emerald-600 text-white px-3 py-1 rounded-lg text-xs font-bold transition active:scale-95 whitespace-nowrap">등록</button>
+            </div>
+          </div>
+        </div>
+
+        <button onclick="closeCalendarModal()" class="w-full mt-4 py-2.5 bg-amber-900 hover:bg-amber-950 text-white rounded-xl text-xs font-bold transition active:scale-95 shadow-md">
+          정원으로 돌아가기 🌳
+        </button>
+      </div>
+
+    </div>
+  </div>
+
+  <!-- 3. 새 정원 만들기 모달 (정원 관리 도구 내부에서 추가로 호출) -->
+  <div id="new-garden-modal" class="fixed inset-0 z-50 bg-black/70 backdrop-blur-sm flex items-center justify-center p-4 opacity-0 pointer-events-none transition-all duration-300">
+    <div class="bg-white border-2 border-emerald-800/10 rounded-[2rem] shadow-2xl max-w-sm w-full p-6 transition-transform duration-300 scale-95" id="new-garden-modal-content">
+      <h3 class="text-lg font-black text-amber-950 mb-3 flex items-center gap-2">
+        🪴 새로운 독서 정원 개간하기
+      </h3>
+      <p class="text-xs text-amber-800/70 mb-4 leading-relaxed">
+        새로운 주제나 기한에 맞춘 독서 숲을 조성합니다. 각 정원마다 자라나는 나무는 서로 다른 독서 목록을 관리합니다.
+      </p>
+
+      <div class="space-y-3 text-xs">
+        <div>
+          <label class="block text-amber-900 font-bold mb-1">정원 이름 (예: 자기계발 정원, 완독방)</label>
+          <input type="text" id="new-garden-name" class="w-full bg-amber-50/50 border border-amber-200 rounded-lg px-3 py-2 text-xs focus:ring-1 focus:ring-emerald-400 focus:outline-none" placeholder="예: 시집 정원, 완독 도서관">
+        </div>
+        <div>
+          <label class="block text-amber-900 font-bold mb-1">나무 이름 설정</label>
+          <input type="text" id="new-garden-tree" class="w-full bg-amber-50/50 border border-amber-200 rounded-lg px-3 py-2 text-xs focus:ring-1 focus:ring-emerald-400 focus:outline-none" placeholder="예: 플라톤 나무, 지혜나무">
+        </div>
+      </div>
+
+      <div class="flex gap-2 mt-6">
+        <button onclick="closeNewGardenModal()" class="flex-1 py-2 bg-amber-50 hover:bg-amber-100 text-amber-900 font-bold text-xs rounded-xl transition">취소</button>
+        <button onclick="createNewGarden()" class="flex-1 py-2 bg-emerald-500 hover:bg-emerald-600 text-white font-bold text-xs rounded-xl transition shadow-md">정원 생성</button>
+      </div>
+    </div>
+  </div>
+
+  <!-- 4. 정원 삭제 확인 커스텀 모달 (Iframe confirm 차단 우회용) -->
+  <div id="delete-confirm-modal" class="fixed inset-0 z-50 bg-black/60 backdrop-blur-sm flex items-center justify-center p-4 opacity-0 pointer-events-none transition-all duration-300">
+    <div class="bg-white border-2 border-red-200 rounded-[2rem] shadow-2xl max-w-xs w-full p-6 transition-transform duration-300 scale-95" id="delete-confirm-modal-content">
+      <div class="text-center">
+        <span class="text-4xl mb-2 block">🗑️</span>
+        <h3 class="text-base font-black text-amber-950 mb-2">정원을 삭제할까요?</h3>
+        <p class="text-xs text-amber-800/80 mb-5 leading-relaxed">
+          선택한 <strong class="text-red-600" id="delete-garden-target-name">정원</strong>과 그 안의 소중한 독서 기록 나무, 체크리스트가 전부 사라집니다. 정말로 삭제할까요?
+        </p>
+      </div>
+      <div class="flex gap-2 text-xs font-bold">
+        <button onclick="closeDeleteConfirmModal()" class="flex-1 py-2.5 bg-amber-50 hover:bg-amber-100 text-amber-950 rounded-xl transition">취소</button>
+        <button onclick="confirmDeleteGarden()" class="flex-1 py-2.5 bg-red-500 hover:bg-red-600 text-white rounded-xl transition shadow-md">정원 삭제</button>
+      </div>
+    </div>
+  </div>
+
+  <!-- 오디오 합성 재생을 위한 Web Audio API 비하인드 코드 -->
+  <script>
+    /* =====================================================================
+       1. WEB AUDIO API - 실시간 로파이 뮤직 및 앰비언트 노이즈 신디사이저
+       ===================================================================== */
+    let audioCtx = null;
+    let synthInterval = null;
+    let noiseNode = null;
+    let bgmVolume = null;
+    let isPlaying = false;
+    let currentBgmTrack = 'off';
+
+    // 앰비언트 노이즈 생성기 (비 소리 및 vinyl 지직거림 합성)
+    function createAmbientNoise(ctx) {
+      const bufferSize = 2 * ctx.sampleRate,
+            noiseBuffer = ctx.createBuffer(1, bufferSize, ctx.sampleRate),
+            output = noiseBuffer.getChannelData(0);
+      
+      let lastOut = 0.0;
+      for (let i = 0; i < bufferSize; i++) {
+        const white = Math.random() * 2 - 1;
+        // 브라운 노이즈 필터링 (저음 위주의 따뜻한 앰비언스 생성)
+        output[i] = (lastOut + (0.02 * white)) / 1.02;
+        lastOut = output[i];
+        output[i] *= 3.5; // 음량 보정
+      }
+
+      const noise = ctx.createBufferSource();
+      noise.buffer = noiseBuffer;
+      noise.loop = true;
+
+      // 지직거리는 소리 가끔 생성 (크래클 노이즈 필터)
+      const lpFilter = ctx.createBiquadFilter();
+      lpFilter.type = 'lowpass';
+      lpFilter.frequency.value = 600; // 어둡고 묵직하게
+
+      noise.connect(lpFilter);
+      return { source: noise, filter: lpFilter };
+    }
+
+    // 간단한 로파이 신디 피아노 플레이어
+    function playPianoNote(ctx, frequency, startTime, duration, dest) {
+      const osc = ctx.createOscillator();
+      const gain = ctx.createGain();
+      
+      // 삼각파(Triangle)를 사용하여 포근하고 보드라운 톤 연출
+      osc.type = 'triangle';
+      osc.frequency.setValueAtTime(frequency, startTime);
+      
+      // 로파이 특유의 미세한 피치 흔들림(Vibrato) 부여
+      const lfo = ctx.createOscillator();
+      const lfoGain = ctx.createGain();
+      lfo.frequency.value = 4.5; // 4.5Hz of analog distortion
+      lfoGain.gain.value = 1.2; // depth of vibrato
+      
+      lfo.connect(lfoGain);
+      lfoGain.connect(osc.frequency);
+      
+      // 로파이 느낌의 부드러운 엔벨로프
+      gain.gain.setValueAtTime(0, startTime);
+      gain.gain.linearRampToValueAtTime(0.2, startTime + 0.1); // soft attack
+      gain.gain.exponentialRampToValueAtTime(0.0001, startTime + duration); // slow release
+      
+      osc.connect(gain);
+      gain.connect(dest);
+      
+      lfo.start(startTime);
+      osc.start(startTime);
+      lfo.stop(startTime + duration);
+      osc.stop(startTime + duration);
+    }
+
+    // 멜로디 루프 엔진
+    let step = 0;
+    const chords = [
+      [261.63, 329.63, 392.00, 493.88], // Cmaj7
+      [220.00, 261.63, 329.63, 392.00], // Am7
+      [174.61, 220.00, 261.63, 329.63], // Fmaj7
+      [196.00, 246.94, 293.66, 349.23]  // G7
+    ];
+    const melodies = [
+      [392.00, 493.88, 523.25, 587.33],
+      [440.00, 523.25, 587.33, 659.25],
+      [349.23, 440.00, 523.25, 587.33],
+      [392.00, 493.88, 587.33, 698.46]
+    ];
+
+    function startLofiSynth() {
+      if (synthInterval) clearInterval(synthInterval);
+      
+      const tempo = 1200; // tempo
+      
+      synthInterval = setInterval(() => {
+        if (!audioCtx || audioCtx.state === 'suspended') return;
+        
+        const now = audioCtx.currentTime;
+        const chordIndex = Math.floor(step / 4) % chords.length;
+        const currentChord = chords[chordIndex];
+        const currentMelody = melodies[chordIndex];
+        
+        if (step % 4 === 0) {
+          currentChord.forEach(freq => {
+            playPianoNote(audioCtx, freq, now, 3.5, bgmVolume);
+          });
+        }
+        
+        if (Math.random() > 0.3) {
+          const noteFreq = currentMelody[Math.floor(Math.random() * currentMelody.length)];
+          playPianoNote(audioCtx, noteFreq * (Math.random() > 0.6 ? 2 : 1), now + 0.3, 1.2, bgmVolume);
+        }
+
+        if (currentBgmTrack === 'track2' && step % 2 === 1) {
+          playWarmTick(audioCtx, now, bgmVolume);
+        }
+
+        step++;
+      }, tempo);
+    }
+
+    function playWarmTick(ctx, startTime, dest) {
+      const osc = ctx.createOscillator();
+      const gain = ctx.createGain();
+      osc.type = 'sine';
+      osc.frequency.setValueAtTime(100, startTime);
+      gain.gain.setValueAtTime(0.015, startTime);
+      gain.gain.exponentialRampToValueAtTime(0.0001, startTime + 0.05);
+      osc.connect(gain);
+      gain.connect(dest);
+      osc.start(startTime);
+      osc.stop(startTime + 0.06);
+    }
+
+    function initAudio() {
+      if (!audioCtx) {
+        audioCtx = new (window.AudioContext || window.webkitAudioContext)();
+        
+        bgmVolume = audioCtx.createGain();
+        bgmVolume.gain.setValueAtTime(0.12, audioCtx.currentTime);
+
+        const masterFilter = audioCtx.createBiquadFilter();
+        masterFilter.type = 'lowpass';
+        masterFilter.frequency.setValueAtTime(1400, audioCtx.currentTime);
+
+        bgmVolume.connect(masterFilter);
+        masterFilter.connect(audioCtx.destination);
+      }
+    }
+
+    function toggleBgm() {
+      initAudio();
+      
+      const selectElement = document.getElementById('bgm-select');
+      if (selectElement.value === 'off') {
+        selectElement.selectedIndex = 1;
+      }
+      currentBgmTrack = selectElement.value;
+
+      if (isPlaying) {
+        audioCtx.suspend();
+        isPlaying = false;
+        document.getElementById('play-icon').className = 'fa-solid fa-play';
+      } else {
+        audioCtx.resume();
+        isPlaying = true;
+        document.getElementById('play-icon').className = 'fa-solid fa-pause';
+        applyBgmTrackSettings();
+      }
+    }
+
+    function changeBgmTrack() {
+      initAudio();
+      const track = document.getElementById('bgm-select').value;
+      currentBgmTrack = track;
+
+      if (track === 'off') {
+        if (isPlaying) {
+          audioCtx.suspend();
+          isPlaying = false;
+          document.getElementById('play-icon').className = 'fa-solid fa-play';
+        }
+        return;
+      }
+
+      if (!isPlaying) {
+        audioCtx.resume();
+        isPlaying = true;
+        document.getElementById('play-icon').className = 'fa-solid fa-pause';
+      }
+
+      applyBgmTrackSettings();
+    }
+
+    function applyBgmTrackSettings() {
+      if (!audioCtx) return;
+
+      if (noiseNode) {
+        try { noiseNode.stop(); } catch(e){}
+        noiseNode = null;
+      }
+
+      if (currentBgmTrack === 'off') {
+        if (synthInterval) clearInterval(synthInterval);
+        return;
+      }
+
+      const noiseData = createAmbientNoise(audioCtx);
+      noiseNode = noiseData.source;
+      
+      if (currentBgmTrack === 'track1') {
+        noiseData.filter.frequency.setValueAtTime(450, audioCtx.currentTime);
+        bgmVolume.gain.setValueAtTime(0.12, audioCtx.currentTime);
+      } else if (currentBgmTrack === 'track2') {
+        noiseData.filter.frequency.setValueAtTime(300, audioCtx.currentTime);
+        bgmVolume.gain.setValueAtTime(0.15, audioCtx.currentTime);
+      } else if (currentBgmTrack === 'track3') {
+        noiseData.filter.frequency.setValueAtTime(750, audioCtx.currentTime);
+        bgmVolume.gain.setValueAtTime(0.09, audioCtx.currentTime);
+      }
+
+      noiseNode.connect(bgmVolume);
+      noiseNode.start();
+
+      startLofiSynth();
+    }
+
+    function playLeafRustle() {
+      initAudio();
+      if (!audioCtx) return;
+      
+      const now = audioCtx.currentTime;
+      const noise = createAmbientNoise(audioCtx);
+      const gain = ctx = audioCtx.createGain();
+      
+      gain.gain.setValueAtTime(0.25, now);
+      gain.gain.exponentialRampToValueAtTime(0.001, now + 0.6);
+
+      noise.filter.frequency.setValueAtTime(1800, now);
+      noise.source.connect(gain);
+      gain.connect(audioCtx.destination);
+      
+      noise.source.start(now);
+      noise.source.stop(now + 0.65);
+    }
+
+
+    /* =====================================================================
+       2. APP STATE & CORE LOGIC (기록 데이터 관리)
+       ===================================================================== */
+    const STORAGE_KEY = 'my_reading_garden_data_v2';
+    
+    const defaultData = {
+      gardens: [
+        {
+          id: 'g-default',
+          name: '올해의 인문학 정원 📖',
+          treeName: '소크라테스 떡갈나무',
+          books: [
+            { id: 'b1', title: '데미안', date: '2026-06-15', completed: true, fruitPos: { x: 35, y: 45 } },
+            { id: 'b2', title: '어린왕자', date: '2026-06-18', completed: true, fruitPos: { x: 65, y: 35 } },
+            { id: 'b3', title: '총 균 쇠', date: '2026-06-25', completed: false, fruitPos: { x: 50, y: 20 } }
+          ]
+        },
+        {
+          id: 'g-sample-2',
+          name: '감성 소설 정원 🌸',
+          treeName: '사각사각 벚나무',
+          books: [
+            { id: 'b4', title: '한 밤의 도서관', date: '2026-06-10', completed: true, fruitPos: { x: 45, y: 55 } }
+          ]
+        }
+      ],
+      currentGardenId: 'g-default'
+    };
+
+    let state = JSON.parse(localStorage.getItem(STORAGE_KEY)) || defaultData;
+    let calendarDate = new Date();
+    let selectedDateStr = formatDate(new Date());
+    let gardenIdToDelete = null;
+
+    function saveState() {
+      localStorage.setItem(STORAGE_KEY, JSON.stringify(state));
+    }
+
+    function getActiveGarden() {
+      return state.gardens.find(g => g.id === state.currentGardenId) || state.gardens[0];
+    }
+
+    function formatDate(date) {
+      const yyyy = date.getFullYear();
+      const mm = String(date.getMonth() + 1).padStart(2, '0');
+      const dd = String(date.getDate()).padStart(2, '0');
+      return `${yyyy}-${mm}-${dd}`;
+    }
+
+
+    /* =====================================================================
+       3. VISUAL LOGIC (싱그러운 초록 나무 일정한 톤 유지)
+       ===================================================================== */
+    function updateGardenVisuals() {
+      const garden = getActiveGarden();
+
+      const foliageSvg = document.getElementById('tree-foliage');
+      const bgElement = document.getElementById('garden-bg');
+      const badge = document.getElementById('season-badge');
+      const decorSvg = document.getElementById('tree-decorations');
+
+      decorSvg.innerHTML = '';
+
+      // [개선!] 싱그러운 초록 정원 전용 컬러맵 (동일한 싱그러운 초록색 #2f874e으로 모두 채움)
+      const foliageColors = Array(8).fill('#2f874e');
+      const bgStyle = 'linear-gradient(to bottom, #bae6fd, #e0f2fe, #f0fdf4, #a7f3d0)';
+      const badgeText = '🌿 싱그러운 초록 정원';
+
+      // 나무 잎사귀 색상 치환 적용
+      if (foliageSvg) {
+        const circles = foliageSvg.querySelectorAll('circle');
+        circles.forEach((circle, index) => {
+          if(foliageColors[index]) {
+            circle.setAttribute('fill', foliageColors[index]);
+          }
+        });
+      }
+
+      document.getElementById('trunk-badge-text').innerText = garden.treeName;
+      document.getElementById('tree-name-label').innerText = `"${garden.treeName}"의 품속`;
+
+      bgElement.style.background = bgStyle;
+      badge.innerText = badgeText;
+
+      renderBookFruits();
+    }
+
+
+    /* =====================================================================
+       4. 책 열매 (BOOK FRUITS) 시스템
+       ===================================================================== */
+    function renderBookFruits() {
+      const container = document.getElementById('foliage-area');
+      container.innerHTML = '';
+
+      const garden = getActiveGarden();
+      const completedBooks = garden.books.filter(b => b.completed);
+
+      completedBooks.forEach(book => {
+        if (!book.fruitPos || !book.fruitPos.x) {
+          book.fruitPos = {
+            x: 25 + Math.random() * 50,
+            y: 20 + Math.random() * 55
+          };
+          saveState();
+        }
+
+        const fruit = document.createElement('div');
+        fruit.className = 'absolute flex flex-col items-center fruit-float cursor-pointer group z-20';
+        fruit.style.left = `${book.fruitPos.x}%`;
+        fruit.style.top = `${book.fruitPos.y}%`;
+
+        const bookEmojis = ['📘', '📙', '📗', '📕', '📖', '📔'];
+        const emojiIndex = (book.id.charCodeAt(book.id.length - 1) || 0) % bookEmojis.length;
+        const emoji = bookEmojis[emojiIndex];
+
+        fruit.innerHTML = `
+          <div class="relative flex flex-col items-center">
+            <span class="text-emerald-800 text-[8px] absolute top-[-6px] font-bold">🌿</span>
+            <span class="text-xl filter drop-shadow hover:scale-125 transition-transform duration-200">${emoji}</span>
+            <div class="absolute bottom-[-24px] bg-amber-950/90 text-white text-[9px] px-2 py-0.5 rounded whitespace-nowrap opacity-0 group-hover:opacity-100 transition-opacity pointer-events-none z-30 shadow-md">
+              📚 ${book.title}
+            </div>
+          </div>
+        `;
+
+        fruit.addEventListener('click', () => {
+          showMiniNotification(`"${book.title}" 도서입니다! 기둥 달력에서 수정 가능해요.`);
+        });
+
+        container.appendChild(fruit);
+      });
+
+      document.getElementById('stat-fruits-count').innerText = completedBooks.length;
+      document.getElementById('stat-total-count').innerText = garden.books.length;
+    }
+
+
+    /* =====================================================================
+       5. GARDEN CRUD & NAVIGATION (정원 목록 제어 및 모달)
+       ===================================================================== */
+    function openGardenManagementModal() {
+      playLeafRustle();
+      
+      const modal = document.getElementById('garden-mgmt-modal');
+      const content = document.getElementById('garden-mgmt-modal-content');
+      modal.classList.remove('opacity-0', 'pointer-events-none');
+      content.classList.remove('scale-95');
+      content.classList.add('scale-100');
+
+      renderGardenList();
+    }
+
+    function closeGardenManagementModal() {
+      const modal = document.getElementById('garden-mgmt-modal');
+      const content = document.getElementById('garden-mgmt-modal-content');
+      modal.classList.add('opacity-0', 'pointer-events-none');
+      content.classList.add('scale-95');
+      content.classList.remove('scale-100');
+    }
+
+    function renderGardenList() {
+      const container = document.getElementById('garden-list');
+      container.innerHTML = '';
+
+      state.gardens.forEach(g => {
+        const isActive = g.id === state.currentGardenId;
+        const activeClass = isActive 
+          ? 'bg-emerald-600 text-white shadow-md' 
+          : 'bg-amber-50 hover:bg-amber-100 text-amber-900 border border-amber-200/50';
+
+        const btn = document.createElement('div');
+        btn.className = `p-3 rounded-2xl flex justify-between items-center cursor-pointer transition active:scale-95 text-xs font-bold ${activeClass}`;
+        
+        const completedCount = g.books.filter(b => b.completed).length;
+        
+        btn.innerHTML = `
+          <div class="flex-1" onclick="switchGarden('${g.id}')">
+            <div class="truncate">🏡 ${g.name}</div>
+            <div class="${isActive ? 'text-emerald-100' : 'text-amber-800/60'} text-[10px] font-normal mt-0.5">
+              열매 ${completedCount}개 / 나무: ${g.treeName}
+            </div>
+          </div>
+          ${state.gardens.length > 1 ? `
+            <button onclick="openDeleteConfirmModal('${g.id}', event)" class="w-6 h-6 rounded-full hover:bg-red-500 hover:text-white flex items-center justify-center text-[10px] transition ml-2 bg-amber-200/20">
+              <i class="fa-solid fa-trash"></i>
+            </button>
+          ` : ''}
+        `;
+
+        container.appendChild(btn);
+      });
+
+      const currentG = getActiveGarden();
+      document.getElementById('current-garden-title').innerText = currentG.name;
+      document.getElementById('tree-name-input').value = currentG.treeName;
+    }
+
+    function switchGarden(gardenId) {
+      state.currentGardenId = gardenId;
+      saveState();
+      renderGardenList();
+      updateGardenVisuals();
+    }
+
+    function openDeleteConfirmModal(gardenId, e) {
+      if (e) e.stopPropagation();
+      
+      const targetGarden = state.gardens.find(g => g.id === gardenId);
+      if(!targetGarden) return;
+
+      gardenIdToDelete = gardenId;
+      document.getElementById('delete-garden-target-name').innerText = `[${targetGarden.name}]`;
+
+      const modal = document.getElementById('delete-confirm-modal');
+      const content = document.getElementById('delete-confirm-modal-content');
+      modal.classList.remove('opacity-0', 'pointer-events-none');
+      content.classList.remove('scale-95');
+      content.classList.add('scale-100');
+    }
+
+    function closeDeleteConfirmModal() {
+      const modal = document.getElementById('delete-confirm-modal');
+      const content = document.getElementById('delete-confirm-modal-content');
+      modal.classList.add('opacity-0', 'pointer-events-none');
+      content.classList.add('scale-95');
+      content.classList.remove('scale-100');
+      gardenIdToDelete = null;
+    }
+
+    function confirmDeleteGarden() {
+      if (!gardenIdToDelete) return;
+
+      state.gardens = state.gardens.filter(g => g.id !== gardenIdToDelete);
+      
+      if (state.currentGardenId === gardenIdToDelete) {
+        state.currentGardenId = state.gardens[0].id;
+      }
+
+      saveState();
+      closeDeleteConfirmModal();
+      
+      renderGardenList();
+      updateGardenVisuals();
+      showMiniNotification('소중했던 정원을 안전하게 정리했습니다. 🧹');
+    }
+
+    function openNewGardenModal() {
+      const modal = document.getElementById('new-garden-modal');
+      const content = document.getElementById('new-garden-modal-content');
+      modal.classList.remove('opacity-0', 'pointer-events-none');
+      content.classList.remove('scale-95');
+      content.classList.add('scale-100');
+    }
+
+    function closeNewGardenModal() {
+      const modal = document.getElementById('new-garden-modal');
+      const content = document.getElementById('new-garden-modal-content');
+      modal.classList.add('opacity-0', 'pointer-events-none');
+      content.classList.add('scale-95');
+      content.classList.remove('scale-100');
+    }
+
+    function createNewGarden() {
+      const name = document.getElementById('new-garden-name').value.trim();
+      const tree = document.getElementById('new-garden-tree').value.trim();
+
+      if(!name || !tree) {
+        showMiniNotification('정원 이름과 나무 이름을 소중히 적어주세요. 📝');
+        return;
+      }
+
+      const newId = 'g-' + Date.now();
+      const newG = {
+        id: newId,
+        name: name,
+        treeName: tree,
+        books: []
+      };
+
+      state.gardens.push(newG);
+      state.currentGardenId = newId;
+      saveState();
+
+      document.getElementById('new-garden-name').value = '';
+      document.getElementById('new-garden-tree').value = '';
+      closeNewGardenModal();
+
+      renderGardenList();
+      updateGardenVisuals();
+      showMiniNotification('새로운 예쁜 정원이 마련되었어요! 🌱');
+    }
+
+    function updateTreeName() {
+      const newName = document.getElementById('tree-name-input').value.trim();
+      if(!newName) return;
+      
+      const garden = getActiveGarden();
+      garden.treeName = newName;
+      saveState();
+      
+      renderGardenList();
+      updateGardenVisuals();
+      showMiniNotification('나무 이름표를 다시 달아주었어요! 🪵');
+    }
+
+
+    /* =====================================================================
+       6. 달력 및 체크리스트 기능 (남은 책 계산 포함)
+       ===================================================================== */
+    function openCalendarModal() {
+      const modal = document.getElementById('calendar-modal');
+      const content = document.getElementById('calendar-modal-content');
+      modal.classList.remove('opacity-0', 'pointer-events-none');
+      content.classList.remove('scale-95');
+      content.classList.add('scale-100');
+
+      selectedDateStr = formatDate(new Date());
+      document.getElementById('new-book-date').value = selectedDateStr;
+
+      renderCalendar();
+      renderTodoList();
+    }
+
+    function closeCalendarModal() {
+      const modal = document.getElementById('calendar-modal');
+      const content = document.getElementById('calendar-modal-content');
+      modal.classList.add('opacity-0', 'pointer-events-none');
+      content.classList.add('scale-95');
+      content.classList.remove('scale-100');
+
+      updateGardenVisuals();
+    }
+
+    function changeMonth(direction) {
+      calendarDate.setMonth(calendarDate.getMonth() + direction);
+      renderCalendar();
+    }
+
+    function updateRemainingCalculator() {
+      const garden = getActiveGarden();
+      const planned = garden.books.length;
+      const read = garden.books.filter(b => b.completed).length;
+      const remaining = planned - read;
+
+      document.getElementById('calc-planned').innerText = planned;
+      document.getElementById('calc-read').innerText = read;
+      document.getElementById('calc-remaining').innerText = remaining;
+    }
+
+    function renderCalendar() {
+      const grid = document.getElementById('calendar-grid');
+      grid.innerHTML = '';
+
+      const year = calendarDate.getFullYear();
+      const month = calendarDate.getMonth();
+
+      document.getElementById('calendar-title').innerText = `${year}년 ${month + 1}월`;
+
+      const firstDayIndex = new Date(year, month, 1).getDay();
+      const lastDate = new Date(year, month + 1, 0).getDate();
+      const prevLastDate = new Date(year, month, 0).getDate();
+
+      const garden = getActiveGarden();
+
+      for (let i = firstDayIndex - 1; i >= 0; i--) {
+        const d = prevLastDate - i;
+        const cell = document.createElement('div');
+        cell.className = 'p-2 text-slate-300 pointer-events-none text-center';
+        cell.innerText = d;
+        grid.appendChild(cell);
+      }
+
+      for (let d = 1; d <= lastDate; d++) {
+        const dayStr = `${year}-${String(month + 1).padStart(2, '0')}-${String(d).padStart(2, '0')}`;
+        
+        const booksOnDay = garden.books.filter(b => b.date === dayStr);
+
+        const cell = document.createElement('div');
+        const isSelected = selectedDateStr === dayStr;
+        
+        let activeBg = 'hover:bg-amber-100/50';
+        if (isSelected) {
+          activeBg = 'bg-amber-200 border-2 border-amber-600 font-black';
+        }
+
+        cell.className = `p-2 rounded-xl cursor-pointer transition flex flex-col items-center justify-between min-h-[52px] ${activeBg}`;
+        cell.onclick = () => selectCalendarDate(dayStr);
+
+        const numSpan = document.createElement('span');
+        numSpan.innerText = d;
+        numSpan.className = "font-bold text-amber-950";
+        cell.appendChild(numSpan);
+
+        if (booksOnDay.length > 0) {
+          const badgeDiv = document.createElement('div');
+          badgeDiv.className = 'mt-1 flex gap-0.5 justify-center flex-wrap';
+          
+          booksOnDay.forEach(b => {
+            const badge = document.createElement('span');
+            badge.className = 'text-[9px]';
+            badge.innerText = b.completed ? '🍎' : '📖';
+            badgeDiv.appendChild(badge);
+          });
+
+          cell.appendChild(badgeDiv);
+        }
+
+        grid.appendChild(cell);
+      }
+
+      updateRemainingCalculator();
+    }
+
+    function selectCalendarDate(dateStr) {
+      selectedDateStr = dateStr;
+      
+      const parsed = new Date(dateStr);
+      document.getElementById('selected-date-label').innerText = `${parsed.getMonth() + 1}월 ${parsed.getDate()}일 계획`;
+      document.getElementById('new-book-date').value = dateStr;
+
+      renderCalendar();
+      renderTodoList();
+    }
+
+    function renderTodoList() {
+      const todoContainer = document.getElementById('todo-list');
+      todoContainer.innerHTML = '';
+
+      const garden = getActiveGarden();
+      const targetBooks = garden.books.filter(b => b.date === selectedDateStr);
+
+      if (targetBooks.length === 0) {
+        todoContainer.innerHTML = `
+          <div class="h-full flex flex-col items-center justify-center py-8 text-center text-amber-900/40">
+            <div class="text-3xl mb-1">💤</div>
+            <p class="text-xs">이날에 등록된 계획이 없습니다.<br>아래에서 책을 추가해볼까요?</p>
+          </div>
+        `;
+        return;
+      }
+
+      targetBooks.forEach(book => {
+        const item = document.createElement('div');
+        item.className = `p-2.5 rounded-xl border flex items-center justify-between transition-all duration-300 ${
+          book.completed 
+            ? 'bg-emerald-50/70 border-emerald-200 line-through text-emerald-800/60' 
+            : 'bg-white border-amber-200 shadow-sm text-slate-800'
+        }`;
+
+        item.innerHTML = `
+          <div class="flex items-center gap-2 flex-1 cursor-pointer select-none" onclick="toggleBookCompletion('${book.id}')">
+            <span class="text-lg">${book.completed ? '🍎' : '🌳'}</span>
+            <span class="text-xs font-bold leading-tight truncate max-w-[140px]">${book.title}</span>
+          </div>
+          <button onclick="deleteBook('${book.id}')" class="w-5 h-5 rounded-full hover:bg-red-100 text-red-500 flex items-center justify-center transition">
+            <i class="fa-solid fa-xmark text-xs"></i>
+          </button>
+        `;
+
+        todoContainer.appendChild(item);
+      });
+    }
+
+    function addNewBook() {
+      const title = document.getElementById('new-book-title').value.trim();
+      const date = document.getElementById('new-book-date').value;
+
+      if (!title) {
+        showMiniNotification('어떤 책을 읽을지 제목을 입력해주세요! 📚');
+        return;
+      }
+      if (!date) {
+        showMiniNotification('독서 계획일을 선택해주세요. 📅');
+        return;
+      }
+
+      const garden = getActiveGarden();
+      const newBook = {
+        id: 'b-' + Date.now(),
+        title: title,
+        date: date,
+        completed: false,
+        fruitPos: null
+      };
+
+      garden.books.push(newBook);
+      saveState();
+
+      document.getElementById('new-book-title').value = '';
+      
+      selectedDateStr = date;
+      renderCalendar();
+      renderTodoList();
+      showMiniNotification(`독서 도서 "${title}" 계획 등록 성공!`);
+    }
+
+    function toggleBookCompletion(bookId) {
+      const garden = getActiveGarden();
+      const book = garden.books.find(b => b.id === bookId);
+      if (book) {
+        book.completed = !book.completed;
+        saveState();
+        
+        renderCalendar();
+        renderTodoList();
+
+        playLeafRustle();
+        
+        if (book.completed) {
+          showMiniNotification(`🎉 축하합니다! "${book.title}" 열매가 나무에 맺혔어요!`);
+        }
+      }
+    }
+
+    function deleteBook(bookId) {
+      const garden = getActiveGarden();
+      garden.books = garden.books.filter(b => b.id !== bookId);
+      saveState();
+
+      renderCalendar();
+      renderTodoList();
+      showMiniNotification('등록된 책 일감을 삭제했습니다.');
+    }
+
+
+    /* =====================================================================
+       7. UTILITY & DECORATIVE (미니 알림)
+       ===================================================================== */
+    function showMiniNotification(msg) {
+      const existing = document.getElementById('mini-noti');
+      if (existing) existing.remove();
+
+      const noti = document.createElement('div');
+      noti.id = 'mini-noti';
+      noti.className = 'fixed bottom-20 left-1/2 -translate-x-1/2 bg-amber-950 text-white px-5 py-2.5 rounded-full text-xs font-bold z-50 shadow-2xl transition-all duration-300 opacity-0 flex items-center gap-2';
+      noti.innerHTML = `<span>🍄</span> <span>${msg}</span>`;
+      
+      document.body.appendChild(noti);
+      
+      setTimeout(() => {
+        noti.classList.remove('opacity-0');
+        noti.classList.add('opacity-100');
+      }, 50);
+
+      setTimeout(() => {
+        noti.classList.remove('opacity-100');
+        noti.classList.add('opacity-0');
+        setTimeout(() => noti.remove(), 300);
+      }, 3000);
+    }
+
+
+    /* =====================================================================
+       8. INITIALIZER (앱 시작)
+       ===================================================================== */
+    window.onload = function() {
+      renderGardenList();
+      updateGardenVisuals();
+
+      document.getElementById('new-book-date').value = formatDate(new Date());
+
+      setTimeout(() => {
+        showMiniNotification("아기자기한 '나의 독서 정원'에 오신 것을 환영해요! 🏡🌲");
+      }, 1000);
+    }
+  </script>
+</body>
+</html>
