@@ -213,7 +213,7 @@
 
   <!-- 귀여운 저작권 footer -->
   <footer class="bg-amber-950 text-amber-200/60 py-6 text-center text-xs mt-10 border-t border-amber-900">
-    <p class="mb-2">🏕️ 숲속 정원 관리 사무소</p>
+    <p class="mb-2">🏕️ 숲속 도서관 정원 관리 사무소</p>
     <p>Copyright © 2026 My Reading Garden. All Rights Reserved. 잔잔한 로파이 음악과 함께하는 행복한 독서 생활 되세요.</p>
   </footer>
 
@@ -292,12 +292,12 @@
     </div>
   </div>
 
-  <!-- 2. 달력 및 체크리스트 모달 (트렁크 클릭 시 노출) -->
+  <!-- 2. [개선!] 달력 및 체크리스트 모달 (모바일 잘림 현상 방지를 위해 overflow-y-auto 적용 및 모바일 높이 상한 최적화) -->
   <div id="calendar-modal" class="fixed inset-0 z-50 bg-black/60 backdrop-blur-sm flex items-center justify-center p-4 opacity-0 pointer-events-none transition-all duration-300">
-    <div class="bg-[#faf8f4] border-4 border-amber-900/10 rounded-[2rem] shadow-2xl max-w-4xl w-full overflow-hidden flex flex-col md:flex-row max-h-[90vh] transition-transform duration-300 scale-95" id="calendar-modal-content">
+    <div class="bg-[#faf8f4] border-4 border-amber-900/10 rounded-[2rem] shadow-2xl max-w-4xl w-full overflow-y-auto md:overflow-hidden flex flex-col md:flex-row max-h-[95vh] md:max-h-[90vh] transition-transform duration-300 scale-95" id="calendar-modal-content">
       
-      <!-- 달력 섹션 (왼쪽) -->
-      <div class="flex-1 p-6 flex flex-col justify-between border-b md:border-b-0 md:border-r border-amber-200/50">
+      <!-- 달력 섹션 (왼쪽) - 모바일 최적화 p-4 md:p-6 적용 -->
+      <div class="flex-1 p-4 md:p-6 flex flex-col justify-between border-b md:border-b-0 md:border-r border-amber-200/50">
         <div>
           <!-- 달력 헤더 -->
           <div class="flex justify-between items-center mb-4">
@@ -345,8 +345,8 @@
         </div>
       </div>
 
-      <!-- 체크리스트 & 독서 추가 섹션 (오른쪽) -->
-      <div class="w-full md:w-80 bg-amber-50/40 p-6 flex flex-col justify-between">
+      <!-- 체크리스트 & 독서 추가 섹션 (오른쪽) - 모바일 최적화 p-4 md:p-6 적용 -->
+      <div class="w-full md:w-80 bg-amber-50/40 p-4 md:p-6 flex flex-col justify-between">
         <div class="flex-1 flex flex-col">
           <div class="flex justify-between items-center mb-3">
             <h4 class="font-bold text-amber-950 text-sm flex items-center gap-1.5">
@@ -355,8 +355,8 @@
             <span class="text-[10px] bg-emerald-100 text-emerald-800 px-2 py-0.5 rounded-full font-bold" id="selected-date-label">날짜 선택됨</span>
           </div>
 
-          <!-- 리스트 박스 -->
-          <div id="todo-list" class="flex-1 overflow-y-auto space-y-2 mb-4 max-h-[220px] md:max-h-none pr-1">
+          <!-- 리스트 박스 - 모바일에서 높이가 컴팩트하게 제한되도록 max-h 지정 -->
+          <div id="todo-list" class="flex-1 overflow-y-auto space-y-2 mb-4 max-h-[140px] md:max-h-[220px] pr-1">
             <!-- 선택한 날짜 또는 전체 책 체크리스트 렌더링 -->
           </div>
 
@@ -579,7 +579,7 @@
       
       const selectElement = document.getElementById('bgm-select');
       if (selectElement.value === 'off') {
-        selectElement.selectedIndex = 1;
+        selectElement.selectedIndex = 1; // 자동으로 첫 트랙 선택
       }
       currentBgmTrack = selectElement.value;
 
@@ -811,7 +811,7 @@
 
     /* =====================================================================
        5. GARDEN CRUD & NAVIGATION (정원 목록 제어 및 모달)
-       ===================================================================== */
+       ==================================================================== */
     function openGardenManagementModal() {
       playLeafRustle();
       
@@ -1057,12 +1057,13 @@
           activeBg = 'bg-amber-200 border-2 border-amber-600 font-black';
         }
 
-        cell.className = `p-2 rounded-xl cursor-pointer transition flex flex-col items-center justify-between min-h-[52px] ${activeBg}`;
+        // [개선!] 모바일 셀 크기를 조금 더 콤팩트하게 변경하여 스크롤 높이 완화
+        cell.className = `p-1 md:p-2 rounded-xl cursor-pointer transition flex flex-col items-center justify-between min-h-[44px] md:min-h-[52px] ${activeBg}`;
         cell.onclick = () => selectCalendarDate(dayStr);
 
         const numSpan = document.createElement('span');
         numSpan.innerText = d;
-        numSpan.className = "font-bold text-amber-950";
+        numSpan.className = "font-bold text-amber-950 text-xs md:text-sm";
         cell.appendChild(numSpan);
 
         if (booksOnDay.length > 0) {
